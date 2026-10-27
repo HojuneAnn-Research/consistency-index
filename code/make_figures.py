@@ -61,12 +61,10 @@ def gif(data_dir=f"{ROOT}/data/drone", pad=0.03, px=0.0005, width_px=1200):
     # crack points kept by every rule
     views, P, vis, _ = load(data_dir); normal = A[2]
     keep = {}
-    for seg in ("manual", "deepcrack"):
+    for seg in ("manual", "deepcrack", "masonry"):
         lab = mask_labeler(P, {v: load_mask(data_dir, seg, v) for v in views})
         cand, ci = consistency_index(views, P, vis, lab)
         keep[seg] = (cand, {f"CI {k}": ci >= k for k in (1, 2, 3, 4)} | fusion_rules(views, P, vis, lab, cand, normal))
-    run = np.load(f"{data_dir}/masonry_run_ci.npz")
-    keep["masonry"] = (run["xyz"], {f"CI {k}": run["ci"] >= k for k in (1, 2, 3, 4)})
     rows = json.load(open(f"{OUT}/widths.json"))
     title = {"manual": "Manual crack marking", "deepcrack": "DeepCrack", "masonry": "Masonry crack segmentation"}
     frames_def = [("CI 1", "CI 1 (plain reprojection)", "Consistency Index 1: crack in at least 1 photo (plain reprojection)"),

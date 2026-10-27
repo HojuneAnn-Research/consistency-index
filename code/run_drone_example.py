@@ -18,16 +18,12 @@ def main():
     ref = geo["reference_width_mm"]; normal = np.array(geo["frame"]["axes"])[2]
     rows = []
     for seg, title in SEGS.items():
-        if seg == "masonry":   # masks of the original masonry run were not kept: its CI clouds are used as produced
-            run = np.load(f"{DATA}/masonry_run_ci.npz"); pts, ci, lab = run["xyz"], run["ci"], None
-        else:
-            lab = mask_labeler(P, {v: load_mask(DATA, seg, v) for v in views})
-            pts, ci = consistency_index(views, P, vis, lab)
+        lab = mask_labeler(P, {v: load_mask(DATA, seg, v) for v in views})
+        pts, ci = consistency_index(views, P, vis, lab)
         np.savetxt(f"{OUT}/{seg}_ci_points.csv", np.c_[pts, ci], delimiter=",", fmt=["%.5f"] * 3 + ["%d"],
                    header="x,y,z,ci", comments="")
         sets = {f"CI {k}" + (" (plain reprojection)" if k == 1 else ""): ci >= k for k in (1, 2, 3, 4)}
-        if lab is not None:
-            sets.update(fusion_rules(views, P, vis, lab, pts, normal))
+        sets.update(fusion_rules(views, P, vis, lab, pts, normal))
         for name, sel in sets.items():
             w = [width(pts[sel], p, geo)[0] for p in PARTS]
             e = [x - ref[p] for x, p in zip(w, PARTS) if x is not None]

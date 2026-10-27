@@ -1,4 +1,4 @@
-"""Figures for the drone example: rule comparison (mean width error) and a GIF of the crack kept at CI 1-5."""
+"""Figures for the drone example: rule comparison (mean width error) and a GIF of the crack points kept by each rule."""
 import json, os
 import numpy as np
 import matplotlib; matplotlib.use("Agg")
@@ -34,7 +34,10 @@ def comparison():
     fig.tight_layout(); fig.savefig(f"{OUT}/rule_comparison.png", dpi=200); plt.close(fig)
 
 
-def gif(data_dir=f"{ROOT}/data/drone", pad=0.03, px=0.0005):
+def gif(data_dir=f"{ROOT}/data/drone", pad=0.03, px=0.0005, width_px=1200):
+    """One frame per rule, in the order of the comparison figure; one panel per segmentation."""
+    import sys; sys.path.insert(0, os.path.dirname(__file__))
+    from ci_pipeline import load, load_mask, mask_labeler, consistency_index, fusion_rules
     geo = json.load(open(f"{data_dir}/geometry.json")); fr = geo["frame"]
     o, A = np.array(fr["origin"]), np.array(fr["axes"])
     pts = np.load(f"{data_dir}/visible_points_crop.npz")
@@ -46,33 +49,61 @@ def gif(data_dir=f"{ROOT}/data/drone", pad=0.03, px=0.0005):
     def raster(xyz):
         uv = ((xyz - o) @ A.T)[:, :2]; ok = np.all((uv >= lo) & (uv <= hi), 1)
         c = ((uv[ok] - lo) / px).astype(int); return ok, c[:, 0], H - 1 - c[:, 1]
-    ok, cx, cy = raster(bg_xyz); base = np.full((H, W, 3), 255, np.uint8)
-    for d in range(3):                                  # points are ~1 mm apart, raster at 0.5 mm: paint 3x3 blocks
-        for e in range(3):
-            base[np.clip(cy + d - 1, 0, H - 1), np.clip(cx + e - 1, 0, W - 1)] = bg_rgb[ok]
+
+    def paint(img, xyz, rgb):
+        ok, cx, cy = raster(xyz)                      # points are ~1 mm apart, raster at 0.5 mm: paint 3x3 blocks
+        for d in range(3):
+            for e in range(3):
+                img[np.clip(cy + d - 1, 0, H - 1), np.clip(cx + e - 1, 0, W - 1)] = rgb if np.ndim(rgb) == 1 else rgb[ok]
+    base = np.full((H, W, 3), 255, np.uint8); paint(base, bg_xyz, bg_rgb)
     base = (0.55 * base + 0.45 * 255).astype(np.uint8)
-    clouds = {seg: np.loadtxt(f"{OUT}/{seg}_ci_points.csv", delimiter=",", skiprows=1) for seg in ("manual", "deepcrack", "masonry")}
-    names = {"manual": "Manual marking", "deepcrack": "DeepCrack", "masonry": "Masonry network"}
-    try: font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 20)
-    except OSError: font = ImageFont.load_default()
+
+    # crack points kept by every rule
+    views, P, vis, _ = load(data_dir); normal = A[2]
+    keep = {}
+    for seg in ("manual", "deepcrack"):
+        lab = mask_labeler(P, {v: load_mask(data_dir, seg, v) for v in views})
+        cand, ci = consistency_index(views, P, vis, lab)
+        keep[seg] = (cand, {f"CI {k}": ci >= k for k in (1, 2, 3, 4)} | fusion_rules(views, P, vis, lab, cand, normal))
+    run = np.load(f"{data_dir}/masonry_run_ci.npz")
+    keep["masonry"] = (run["xyz"], {f"CI {k}": run["ci"] >= k for k in (1, 2, 3, 4)})
+    rows = json.load(open(f"{OUT}/widths.json"))
+    title = {"manual": "Manual crack marking", "deepcrack": "DeepCrack", "masonry": "Masonry crack segmentation"}
+    frames_def = [("CI 1", "CI 1 (plain reprojection)", "Consistency Index 1: crack in at least 1 photo (plain reprojection)"),
+                  ("CI 2", "CI 2", "Consistency Index 2: crack in at least 2 photos"),
+                  ("CI 3", "CI 3", "Consistency Index 3: crack in at least 3 photos"),
+                  ("CI 4", "CI 4", "Consistency Index 4: crack in at least 4 photos"),
+                  ("best view (closest)", "best view (closest)", "Fixed rule: label of the closest photo only"),
+                  ("best view (most frontal)", "best view (most frontal)", "Fixed rule: label of the most frontal photo only"),
+                  ("fraction >= 1/3", "fraction >= 1/3", "Fixed rule: crack in at least 1/3 of the photos that see the point"),
+                  ("fraction >= 1/2", "fraction >= 1/2", "Fixed rule: crack in at least 1/2 of the photos that see the point"),
+                  ("fraction >= 2/3", "fraction >= 2/3", "Fixed rule: crack in at least 2/3 of the photos that see the point")]
+
+    def font(size):
+        for f in ("DejaVuSans-Bold.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", "arialbd.ttf"):
+            try: return ImageFont.truetype(f, size)
+            except OSError: pass
+        return ImageFont.load_default()
+    f_head, f_panel, f_err = font(24), font(19), font(19)
+    gap, pw = 12, (width_px - 2 * 12) // 3; ph = int(H * pw / W); top, head, foot = 52, 34, 36
     frames = []
-    for k in range(1, 6):
-        panels = []
-        for seg, cl in clouds.items():
-            img = base.copy(); sel = cl[:, 3] >= k; ok2, x2, y2 = raster(cl[sel, :3])
-            for d in range(3):
-                for e in range(3):
-                    img[np.clip(y2 + d - 1, 0, H - 1), np.clip(x2 + e - 1, 0, W - 1)] = (210, 0, 0)
-            im = Image.fromarray(img); dr = ImageDraw.Draw(im); dr.text((8, 6), names[seg], fill=(0, 0, 0), font=font)
-            panels.append(im)
-        f = Image.new("RGB", (sum(p.width for p in panels) + 20, H + 40), "white")
-        x = 0
-        for p in panels: f.paste(p, (x, 40)); x += p.width + 10
-        ImageDraw.Draw(f).text((8, 8), f"Consistency Index {k}", fill=(0, 0, 0), font=font)
-        frames.append(f)
-    s = 900 / frames[0].width
-    frames = [fr_.resize((900, int(fr_.height * s)), Image.LANCZOS) for fr_ in frames]
-    frames[0].save(f"{OUT}/consistency_index_drone.gif", save_all=True, append_images=frames[1:], duration=1200, loop=0)
+    for key, rule_name, caption in frames_def:
+        fr_img = Image.new("RGB", (width_px, top + head + ph + foot), "white"); dr = ImageDraw.Draw(fr_img)
+        dr.text((10, 12), caption, fill=(0, 0, 0), font=f_head)
+        for i, seg in enumerate(("manual", "deepcrack", "masonry")):
+            x0 = i * (pw + gap); cand, sets = keep[seg]
+            dr.text((x0 + 4, top + 6), title[seg], fill=(0, 0, 0), font=f_panel)
+            if key in sets:
+                img = base.copy(); paint(img, cand[sets[key]], np.array([210, 0, 0], np.uint8))
+                fr_img.paste(Image.fromarray(img).resize((pw, ph), Image.LANCZOS), (x0, top + head))
+                r = next(r for r in rows if r["segmentation"] == title[seg] and r["rule"] == rule_name)
+                txt = "mean width error: " + ("n/a" if r["mean_error_mm"] is None else f"{r['mean_error_mm']:+.2f} mm".replace("-", "\u2212"))
+                dr.text((x0 + 4, top + head + ph + 8), txt, fill=(0, 0, 0), font=f_err)
+            else:
+                dr.rectangle([x0, top + head, x0 + pw, top + head + ph], fill=(238, 238, 238))
+                dr.text((x0 + 20, top + head + ph // 2 - 12), "not run (masks not kept)", fill=(90, 90, 90), font=f_panel)
+        frames.append(fr_img)
+    frames[0].save(f"{OUT}/consistency_index_drone.gif", save_all=True, append_images=frames[1:], duration=1600, loop=0)
     frames[0].save(f"{OUT}/ci1_drone.png"); frames[1].save(f"{OUT}/ci2_drone.png")
 
 

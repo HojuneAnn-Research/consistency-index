@@ -15,6 +15,8 @@ Inputs in `data/drone`: visible points of five photos after depth filtering and 
 
 ![CI on the UAV point cloud](results/drone/consistency_index_drone.gif)
 
+Each frame is one rule, in the order of the comparison below. Red points are the crack points the rule keeps for each 2D segmentation; the mean width error of the three parts is given under each panel (0 = crack-ruler width).
+
 ### Comparison with fixed fusion rules
 
 The rules run on the same points, photos and masks for manual crack marking and DeepCrack. *Best view* keeps the label of one photo, chosen by distance or by viewing angle. *Fraction >= f* labels a point when at least a fraction f of the photos that see it agree, which is the decision made by colour averaging with a fixed colour interval. Score accumulation with a fixed constant is a single fixed CI value. The masks of the masonry run were not kept, so its CI clouds are included as produced (`data/drone/masonry_run_ci.npz`) and the fixed rules are not run for it.
@@ -32,6 +34,8 @@ Mean width error in mm (widths of Part 1 / Part 2 / Part 3 in brackets; – = to
 | fraction >= 1/3 | +1.01 (3.96 / 3.15 / 2.64) | -0.12 (2.81 / 1.71 / 1.85) | not run |
 | fraction >= 1/2 | +0.65 (3.51 / 3.07 / 2.10) | -0.44 (2.44 / 1.46 / 1.51) | not run |
 | fraction >= 2/3 | -0.19 (2.50 / 2.59 / –) | -1.35 (1.58 / 1.21 / –) | not run |
+
+How to read the figure: each column is one way of combining the five photos, and each marker is the mean width error of one segmentation (0 = crack-ruler width; grey band ±0.5 mm). From CI 1 to CI 4 the error falls for every segmentation.
 
 ![Rule comparison](results/drone/rule_comparison.png)
 

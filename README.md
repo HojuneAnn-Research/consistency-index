@@ -2,12 +2,9 @@
 
 Reprojection-based 3D crack identification with the **Consistency Index (CI)**: the minimum number of photos in which a point of a photogrammetric point cloud has to reproject onto a 2D crack segment to be labelled a crack point. CI = 1 is plain reprojection (one photo is enough). Raising the CI requires more photos to agree.
 
-This repository contains two worked examples.
+This repository contains the worked example of the accompanying manuscript: the point cloud, camera matrices and three 2D segmentations of its UAV dataset, cropped to the crack. It reproduces the CI point clouds and compares the CI with fixed fusion rules on the same point cloud and photos.
 
-1. **UAV dataset (cropped):** the point cloud, camera matrices and three 2D segmentations used in the accompanying manuscript, cropped to the crack. It reproduces the CI point clouds and compares the CI with fixed fusion rules on the same point cloud and photos.
-2. **Phone photos of a real hairline crack:** a general-purpose segmenter (SAM3, text prompt "crack") on five handheld photos, fused with the CI.
-
-## 1. UAV dataset
+## UAV dataset
 
 ```
 python code/run_drone_example.py   # CI clouds, rules, widths -> results/drone/widths.json
@@ -38,26 +35,10 @@ Mean width error in mm (widths of Part 1 / Part 2 / Part 3 in brackets; – = to
 
 ![Rule comparison](results/drone/rule_comparison.png)
 
-The rule closest to the reference differed between the two segmentations; the best view chosen by distance, for example, gave +0.15 mm for manual marking and −0.72 mm for DeepCrack. This held in eight of nine variants of the width extraction (window length 3, 6 or 10 mm; band, full-extent or 10–90 % width). Whether every fixed rule leaves at least one segmentation outside ±0.5 mm depends on the width definition (six of nine variants), so that is not claimed.
+The rule closest to the reference differed between the two segmentations; the best view chosen by distance, for example, gave +0.15 mm for manual marking and −0.72 mm for DeepCrack. This held in eight of nine variants of the width extraction (window ±3, ±6 or ±10 mm along the crack; band, full-extent or 10–90 % width). Whether every fixed rule leaves at least one segmentation outside ±0.5 mm depends on the width definition (six of nine variants), so that is not claimed.
 
-**Width measurement.** Widths here are extracted automatically: at ten equally spaced stations along each part, the across-crack extent of the contiguous band of crack points within ±6 mm along the crack (`code/ci_pipeline.py`, `width`). The widths in the manuscript's crack width table are CloudCompare readings, so the two sets of numbers are not identical.
-
-## 2. Phone photos of a hairline crack
-
-Five handheld photos of a crack on a painted wall (`data/phone/photos`). A sixth photo with a crack-width gauge (about 0.3 mm at the gauge) is kept aside as a reference (`data/phone/ground_truth`). Photo metadata was removed.
-
-```
-python code/phone/sam3_crack_tiled.py --images data/phone/photos --out data/phone/masks --ckpt sam3.pt   # GPU, SAM3
-python code/phone/fuse.py --photos data/phone/photos --masks data/phone/masks --out results/phone/fused --ref 3
-python code/phone/viz.py --fused results/phone/fused --ref-photo data/phone/photos/crack_04.jpg --out results/phone
-```
-
-The wall is planar, so each wall point is reprojected into every photo through the plane-induced homography estimated from SIFT matches. No 3D reconstruction is run in this example. Photo 2 did not reach the preset 300 inlier matches and was left out, so four photos are fused (registration error 2.6 to 3.5 px).
-
-![CI on the phone photos](results/phone/ci_panel.png)
-
-At CI 2, a scratch and small marks found in one photo only are removed. The paint boundary, detected in several photos, persists to CI 3. At CI 4 the crack thins and its lower part is lost.
+**Width measurement.** Widths here are extracted automatically: at ten equally spaced stations along each part, the across-crack extent of the contiguous band of crack points within ±6 mm along the crack (`code/ci_pipeline.py`, `width`). The manuscript's crack width table uses the same extraction.
 
 ## Requirements
 
-Python 3.10+, numpy, scipy, pillow, matplotlib; opencv-python for the phone example; SAM3 (with its checkpoint) only to regenerate the phone masks.
+Python 3.10+, numpy, scipy, pillow, matplotlib.

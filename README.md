@@ -8,7 +8,7 @@ This repository contains the worked example of the accompanying manuscript: the 
 
 ```
 python code/run_drone_example.py   # CI clouds, rules, widths -> results/drone/widths.json
-python code/make_figures.py        # results/drone/rule_comparison.png, consistency_index_drone.gif
+python code/make_figures.py        # results/drone/consistency_index_drone.gif
 python code/prefilter.py           # comparison of the two pre-filtering stages
 ```
 
@@ -16,31 +16,76 @@ Inputs in `data/drone`: visible points of five photos after depth filtering and 
 
 ![CI on the UAV point cloud](results/drone/consistency_index_drone.gif)
 
-Each frame is one rule, in the order of the comparison below. Rows are the three 2D segmentations and columns the three crack parts, each shown as a zoomed front view of the wall at true scale. Dark red points are the crack points of that part kept by the rule, light red points those of the other parts. Under each view are the width of the part and its error against the crack-ruler width, and each row gives the mean width error of the segmentation. A part measured at fewer than 8 of the 10 stations is marked * with its number of stations and is not used in the mean error.
+Each frame is one rule of the comparison below (CI 1, CI 2 and the fixed rules; CI 3 and CI 4 are in the table only). The three panels are the three 2D segmentations, each a front view of the crack region at true scale with the crack points kept by the rule in red, and the mean width error of each segmentation is given under its view.
 
 ### Comparison with fixed fusion rules
 
 The rules run on the same points, photos and masks for all three segmentations. *Best view* keeps the label of one photo, chosen by distance or by viewing angle. *Fraction >= f* labels a point when at least a fraction f of the photos that see it agree, which is the decision made by colour averaging with a fixed colour interval. Score accumulation with a fixed constant is a single fixed CI value.
 
-Mean width error in mm (widths of Part 1 / Part 2 / Part 3 in brackets; [n] = measured at only n of the 10 stations and not used in the mean error; – = fewer than 3 stations):
+Mean width error in mm against the crack-ruler width, averaged over the parts measured at 8 or more of the 10 stations. **Bold**: the rule closest to the crack-ruler width for that segmentation.
 
 | Rule | Manual crack marking | DeepCrack | Masonry crack segmentation |
 |---|---|---|---|
-| CI 1 (plain reprojection) | +1.32 (4.61 / 3.43 / 2.64) | +0.10 (3.20 / 1.95 / 1.88) | +0.41 (3.01 / 3.29 / –) |
-| CI 2 | +0.27 (3.27 / 2.76 / 2.21 [5]) | -1.09 (2.05 / 1.26 / 1.58 [5]) | -1.03 (1.48 / 1.93 / –) |
-| CI 3 | -0.81 (2.09 / 1.78 / 1.09 [3]) | -1.76 (0.94 / 1.02 / –) | -1.61 (0.59 / 1.66 / –) |
-| CI 4 | -1.49 (1.27 / 1.24 / –) | -2.39 (0.61 / 0.65 [7] / –) | -1.18 (0.42 [4] / 1.30 / –) |
-| best view (closest) | +0.15 (3.04 / 2.18 / 1.96) | -0.72 (1.76 / 1.07 / 1.73) | -0.57 (2.33 / 2.01 / –) |
-| best view (most frontal) | +0.38 (3.11 / 2.40 / 2.36) | -0.97 (1.42 / 1.05 / 1.35) | -0.61 (2.28 / 1.98 / –) |
-| fraction >= 1/3 | +1.01 (3.96 / 3.15 / 2.64) | -0.12 (2.81 / 1.71 / 1.85) | -0.24 (2.51 / 2.49 / –) |
-| fraction >= 1/2 | +0.65 (3.51 / 3.07 / 2.10) | -0.44 (2.44 / 1.46 / 1.51) | -0.77 (1.65 / 2.30 / –) |
-| fraction >= 2/3 | -0.19 (2.50 / 2.59 / 1.91 [7]) | -1.35 (1.58 / 1.21 / 0.85 [5]) | -1.41 (0.70 / 1.95 / –) |
+| CI 1 (plain reprojection) | +1.32 | **+0.10** | +0.41 |
+| CI 2 | +0.27 | −1.09 | −1.03 |
+| CI 3 | −0.81 | −1.76 | −1.61 |
+| CI 4 | −1.49 | −2.39 | −1.18 |
+| Best view (closest photo) | **+0.15** | −0.72 | −0.57 |
+| Best view (most frontal photo) | +0.38 | −0.97 | −0.61 |
+| Fraction ≥ 1/3 | +1.01 | −0.12 | **−0.24** |
+| Fraction ≥ 1/2 | +0.65 | −0.44 | −0.77 |
+| Fraction ≥ 2/3 | −0.19 | −1.35 | −1.41 |
+
+<details>
+<summary>Width of each part (mm)</summary>
+
+**Manual crack marking**
+
+| Rule | Part 1 (3.00 mm) | Part 2 (2.48 mm) | Part 3 (1.25 mm) |
+|---|---|---|---|
+| CI 1 (plain reprojection) | 4.61 | 3.43 | 2.64 |
+| CI 2 | 3.27 | 2.76 | 2.21 (5/10) |
+| CI 3 | 2.09 | 1.78 | 1.09 (3/10) |
+| CI 4 | 1.27 | 1.24 | – |
+| Best view (closest photo) | 3.04 | 2.18 | 1.96 |
+| Best view (most frontal photo) | 3.11 | 2.40 | 2.36 |
+| Fraction ≥ 1/3 | 3.96 | 3.15 | 2.64 |
+| Fraction ≥ 1/2 | 3.51 | 3.07 | 2.10 |
+| Fraction ≥ 2/3 | 2.50 | 2.59 | 1.91 (7/10) |
+
+**DeepCrack**
+
+| Rule | Part 1 (3.00 mm) | Part 2 (2.48 mm) | Part 3 (1.25 mm) |
+|---|---|---|---|
+| CI 1 (plain reprojection) | 3.20 | 1.95 | 1.88 |
+| CI 2 | 2.05 | 1.26 | 1.58 (5/10) |
+| CI 3 | 0.94 | 1.02 | – |
+| CI 4 | 0.61 | 0.65 (7/10) | – |
+| Best view (closest photo) | 1.76 | 1.07 | 1.73 |
+| Best view (most frontal photo) | 1.42 | 1.05 | 1.35 |
+| Fraction ≥ 1/3 | 2.81 | 1.71 | 1.85 |
+| Fraction ≥ 1/2 | 2.44 | 1.46 | 1.51 |
+| Fraction ≥ 2/3 | 1.58 | 1.21 | 0.85 (5/10) |
+
+**Masonry crack segmentation**
+
+| Rule | Part 1 (3.00 mm) | Part 2 (2.48 mm) | Part 3 (1.25 mm) |
+|---|---|---|---|
+| CI 1 (plain reprojection) | 3.01 | 3.29 | – |
+| CI 2 | 1.48 | 1.93 | – |
+| CI 3 | 0.59 | 1.66 | – |
+| CI 4 | 0.42 (4/10) | 1.30 | – |
+| Best view (closest photo) | 2.33 | 2.01 | – |
+| Best view (most frontal photo) | 2.28 | 1.98 | – |
+| Fraction ≥ 1/3 | 2.51 | 2.49 | – |
+| Fraction ≥ 1/2 | 1.65 | 2.30 | – |
+| Fraction ≥ 2/3 | 0.70 | 1.95 | – |
+
+(n/10): measured at only n of the 10 stations, not used in the mean error; –: fewer than 3 stations.
+
+</details>
 
 Part 3 (1.25 mm) is close to the point spacing of about 1 mm. At CI 2 and above, and under the 2/3 fraction, its crack points remain along only part of its length, so it is measured at 3 to 7 stations or not at all. The masonry segmentation did not segment Part 3 at any station in the photos.
-
-How to read the figure: each column is one way of combining the five photos and each marker one segmentation. Panels (a) to (c) give the width of each part, with the actual width measured with the crack ruler as a black line, and panel (d) the mean width error (black line = 0). The grey band is ±0.5 mm around the actual width, and open markers were measured at only 3 to 7 of the 10 stations. From CI 1 to CI 4 the width of every part falls for every segmentation.
-
-![Rule comparison](results/drone/rule_comparison.png)
 
 The rule closest to the reference differed between the segmentations: the best view chosen by distance for manual marking (+0.15 mm), CI 1 for DeepCrack (+0.10 mm) and the 1/3 fraction for the masonry segmentation (−0.24 mm). This held in eight of nine variants of the width extraction (window ±3, ±6 or ±10 mm along the crack; band, full-extent or 10–90 % width). In all nine variants, each of the five fixed rules left at least one segmentation more than 0.5 mm from the reference, and in eight of them the same held for each fixed CI value.
 
@@ -57,4 +102,4 @@ The rule closest to the reference differed between the segmentations: the best v
 
 ## Requirements
 
-Python 3.10+, numpy, scipy, pillow, matplotlib; Open3D only for applying the pre-filtering to a full point cloud.
+Python 3.10+, numpy, scipy, pillow; Open3D only for applying the pre-filtering to a full point cloud.

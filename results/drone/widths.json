@@ -1,0 +1,266 @@
+[
+ {
+  "segmentation": "Manual crack marking",
+  "rule": "CI 1 (plain reprojection)",
+  "points": 1036,
+  "width_mm": [
+   4.61,
+   3.43,
+   2.64
+  ],
+  "mean_error_mm": 1.32,
+  "parts_measured": 3
+ },
+ {
+  "segmentation": "Manual crack marking",
+  "rule": "CI 2",
+  "points": 631,
+  "width_mm": [
+   3.27,
+   2.76,
+   null
+  ],
+  "mean_error_mm": 0.27,
+  "parts_measured": 2
+ },
+ {
+  "segmentation": "Manual crack marking",
+  "rule": "CI 3",
+  "points": 400,
+  "width_mm": [
+   2.09,
+   1.78,
+   null
+  ],
+  "mean_error_mm": -0.81,
+  "parts_measured": 2
+ },
+ {
+  "segmentation": "Manual crack marking",
+  "rule": "CI 4",
+  "points": 201,
+  "width_mm": [
+   1.27,
+   1.24,
+   null
+  ],
+  "mean_error_mm": -1.49,
+  "parts_measured": 2
+ },
+ {
+  "segmentation": "Manual crack marking",
+  "rule": "best view (closest)",
+  "points": 580,
+  "width_mm": [
+   3.04,
+   2.18,
+   1.96
+  ],
+  "mean_error_mm": 0.15,
+  "parts_measured": 3
+ },
+ {
+  "segmentation": "Manual crack marking",
+  "rule": "best view (most frontal)",
+  "points": 582,
+  "width_mm": [
+   3.11,
+   2.4,
+   2.36
+  ],
+  "mean_error_mm": 0.38,
+  "parts_measured": 3
+ },
+ {
+  "segmentation": "Manual crack marking",
+  "rule": "fraction >= 1/3",
+  "points": 859,
+  "width_mm": [
+   3.96,
+   3.15,
+   2.64
+  ],
+  "mean_error_mm": 1.01,
+  "parts_measured": 3
+ },
+ {
+  "segmentation": "Manual crack marking",
+  "rule": "fraction >= 1/2",
+  "points": 743,
+  "width_mm": [
+   3.51,
+   3.07,
+   2.1
+  ],
+  "mean_error_mm": 0.65,
+  "parts_measured": 3
+ },
+ {
+  "segmentation": "Manual crack marking",
+  "rule": "fraction >= 2/3",
+  "points": 537,
+  "width_mm": [
+   2.5,
+   2.59,
+   null
+  ],
+  "mean_error_mm": -0.19,
+  "parts_measured": 2
+ },
+ {
+  "segmentation": "DeepCrack",
+  "rule": "CI 1 (plain reprojection)",
+  "points": 5822,
+  "width_mm": [
+   3.2,
+   1.95,
+   1.88
+  ],
+  "mean_error_mm": 0.1,
+  "parts_measured": 3
+ },
+ {
+  "segmentation": "DeepCrack",
+  "rule": "CI 2",
+  "points": 1957,
+  "width_mm": [
+   2.05,
+   1.26,
+   null
+  ],
+  "mean_error_mm": -1.09,
+  "parts_measured": 2
+ },
+ {
+  "segmentation": "DeepCrack",
+  "rule": "CI 3",
+  "points": 608,
+  "width_mm": [
+   0.94,
+   1.02,
+   null
+  ],
+  "mean_error_mm": -1.76,
+  "parts_measured": 2
+ },
+ {
+  "segmentation": "DeepCrack",
+  "rule": "CI 4",
+  "points": 194,
+  "width_mm": [
+   0.61,
+   null,
+   null
+  ],
+  "mean_error_mm": -2.39,
+  "parts_measured": 1
+ },
+ {
+  "segmentation": "DeepCrack",
+  "rule": "best view (closest)",
+  "points": 2337,
+  "width_mm": [
+   1.76,
+   1.07,
+   1.73
+  ],
+  "mean_error_mm": -0.72,
+  "parts_measured": 3
+ },
+ {
+  "segmentation": "DeepCrack",
+  "rule": "best view (most frontal)",
+  "points": 2599,
+  "width_mm": [
+   1.42,
+   1.05,
+   1.35
+  ],
+  "mean_error_mm": -0.97,
+  "parts_measured": 3
+ },
+ {
+  "segmentation": "DeepCrack",
+  "rule": "fraction >= 1/3",
+  "points": 3869,
+  "width_mm": [
+   2.81,
+   1.71,
+   1.85
+  ],
+  "mean_error_mm": -0.12,
+  "parts_measured": 3
+ },
+ {
+  "segmentation": "DeepCrack",
+  "rule": "fraction >= 1/2",
+  "points": 2707,
+  "width_mm": [
+   2.44,
+   1.46,
+   1.51
+  ],
+  "mean_error_mm": -0.44,
+  "parts_measured": 3
+ },
+ {
+  "segmentation": "DeepCrack",
+  "rule": "fraction >= 2/3",
+  "points": 1349,
+  "width_mm": [
+   1.58,
+   1.21,
+   null
+  ],
+  "mean_error_mm": -1.35,
+  "parts_measured": 2
+ },
+ {
+  "segmentation": "Masonry crack segmentation",
+  "rule": "CI 1 (plain reprojection)",
+  "points": 480,
+  "width_mm": [
+   2.17,
+   2.77,
+   null
+  ],
+  "mean_error_mm": -0.27,
+  "parts_measured": 2
+ },
+ {
+  "segmentation": "Masonry crack segmentation",
+  "rule": "CI 2",
+  "points": 243,
+  "width_mm": [
+   1.34,
+   1.98,
+   null
+  ],
+  "mean_error_mm": -1.08,
+  "parts_measured": 2
+ },
+ {
+  "segmentation": "Masonry crack segmentation",
+  "rule": "CI 3",
+  "points": 142,
+  "width_mm": [
+   null,
+   1.48,
+   null
+  ],
+  "mean_error_mm": -1.0,
+  "parts_measured": 1
+ },
+ {
+  "segmentation": "Masonry crack segmentation",
+  "rule": "CI 4",
+  "points": 70,
+  "width_mm": [
+   null,
+   1.16,
+   null
+  ],
+  "mean_error_mm": -1.32,
+  "parts_measured": 1
+ }
+]

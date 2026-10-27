@@ -1,0 +1,38 @@
+{
+ "reference": "crack_04",
+ "photos_used": [
+  {
+   "photo": "crack_03",
+   "link": "direct",
+   "inliers": 609,
+   "median_err_px": 3.51
+  },
+  {
+   "photo": "crack_04",
+   "link": "reference",
+   "inliers": 0,
+   "median_err_px": 0.0
+  },
+  {
+   "photo": "crack_05",
+   "link": "direct",
+   "inliers": 5959,
+   "median_err_px": 2.58
+  },
+  {
+   "photo": "crack_06",
+   "link": "direct",
+   "inliers": 1037,
+   "median_err_px": 3.46
+  }
+ ],
+ "photos_dropped": [
+  "crack_02"
+ ],
+ "crack_pixels_per_CI": {
+  "1": 178427,
+  "2": 118191,
+  "3": 85592,
+  "4": 54581
+ }
+}

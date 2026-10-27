@@ -37,7 +37,7 @@ Mean width error in mm (widths of Part 1 / Part 2 / Part 3 in brackets; [n] = me
 
 Part 3 (1.25 mm) is close to the point spacing of about 1 mm. At CI 2 and above, and under the 2/3 fraction, its crack points remain along only part of its length, so it is measured at 3 to 7 stations or not at all. The masonry segmentation did not segment Part 3 at any station in the photos.
 
-How to read the figure: each column is one way of combining the five photos, and each marker is the mean width error of one segmentation (0 = crack-ruler width; grey band ±0.5 mm). From CI 1 to CI 4 the width of every part falls for every segmentation.
+How to read the figure: each column is one way of combining the five photos and each marker one segmentation. Panels (a) to (c) give the width of each part, with the actual width measured with the crack ruler as a black line, and panel (d) the mean width error (black line = 0). The grey band is ±0.5 mm around the actual width, and open markers were measured at only 3 to 7 of the 10 stations. From CI 1 to CI 4 the width of every part falls for every segmentation.
 
 ![Rule comparison](results/drone/rule_comparison.png)
 

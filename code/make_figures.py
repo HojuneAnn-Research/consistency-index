@@ -1,4 +1,4 @@
-"""Figures for the drone example: rule comparison (mean width error) and a GIF of the crack points kept by each rule."""
+"""Figures for the drone example: rule comparison (width of each part and mean width error) and a GIF of the crack points kept by each rule."""
 import json, os
 import numpy as np
 import matplotlib; matplotlib.use("Agg")
@@ -12,27 +12,63 @@ COL = {"Manual crack marking": ("#0072B2", "o"), "DeepCrack": ("#D55E00", "s"), 
 ORDER = ["CI 1 (plain reprojection)", "CI 2", "CI 3", "CI 4", "best view (closest)", "best view (most frontal)",
          "fraction >= 1/3", "fraction >= 1/2", "fraction >= 2/3"]
 XLAB = ["CI 1\n(plain)", "CI 2", "CI 3", "CI 4", "Best view\n(closest)", "Best view\n(frontal)",
-        "≥ 1/3\nof views", "≥ 1/2\nof views", "≥ 2/3\nof views"]
+        "Fraction\n≥ 1/3", "Fraction\n≥ 1/2", "Fraction\n≥ 2/3"]
 
 
 def comparison():
-    rows = json.load(open(f"{OUT}/widths.json"))
-    plt.rcParams.update({"font.family": "serif", "font.size": 9, "axes.linewidth": 0.7, "xtick.direction": "in", "ytick.direction": "in"})
-    fig, ax = plt.subplots(figsize=(7.0, 3.4))
-    ax.set_axisbelow(True); ax.grid(True, color="#c9c9c9", linewidth=0.45, linestyle=(0, (1, 2)))
-    ax.axhspan(-0.5, 0.5, color="#ececec", zorder=0); ax.axhline(0, color="#555555", linewidth=0.8)
-    ax.axvline(3.5, color="#888888", linewidth=0.8, linestyle="--")
-    for k, (seg, (c, m)) in enumerate(COL.items()):
-        y = [next((r["mean_error_mm"] for r in rows if r["segmentation"] == seg and r["rule"] == name), None) for name in ORDER]
-        y = [np.nan if v is None else v for v in y]
-        x = np.arange(len(ORDER)) + (k - 1) * 0.18
-        ax.plot(x, y, linestyle="none", marker=m, markersize=5.5, color=c, label=seg, zorder=3)
-    ax.set_xticks(range(len(ORDER))); ax.set_xticklabels(XLAB, fontsize=8)
-    ax.set_xlim(-0.6, len(ORDER) - 0.4); ax.set_ylim(-2.5, 1.5); ax.set_yticks(np.arange(-2.5, 1.51, 0.5))
-    ax.set_ylabel("Mean width error (mm)")
-    ax.text(1.5, -2.38, "Consistency Index", ha="center", fontsize=8); ax.text(6.0, -2.38, "Fixed fusion rules", ha="center", fontsize=8)
-    ax.legend(loc="upper center", bbox_to_anchor=(0.42, 0.99), frameon=True, fontsize=8, framealpha=1, edgecolor="black", handletextpad=0.3, borderpad=0.4)
-    fig.tight_layout(); fig.savefig(f"{OUT}/rule_comparison.png", dpi=200); plt.close(fig)
+    """Width of each part (a-c) and mean width error (d) for every rule and segmentation; the black line is the
+    crack-ruler width (error 0 in d). Open markers: parts measured at only 3 to 7 of the 10 stations."""
+    rows = json.load(open(f"{OUT}/widths.json")); geo = json.load(open(f"{ROOT}/data/drone/geometry.json"))
+    ref = [geo["reference_width_mm"][p] for p in ("Part1", "Part2", "Part3")]; need = geo["width_method"]["need"]
+    plt.rcParams.update({"font.family": "serif", "font.serif": ["Liberation Serif", "DejaVu Serif"], "font.size": 9,
+                         "axes.linewidth": 0.7, "xtick.direction": "in", "ytick.direction": "in"})
+    fig = plt.figure(figsize=(7.4, 9.0))
+    left, right, ah, gap = 0.105, 0.985, 0.16, 0.055
+    tops = [0.925 - k * (ah + gap) for k in range(4)]
+    xf = lambda xd: left + (right - left) * (xd + 0.6) / (len(ORDER) + 0.2)
+    panels = [("(a) Part 1, actual width 3.00 mm", "Width (mm)", (0, 5, 1), ref[0]),
+              ("(b) Part 2, actual width 2.48 mm", "Width (mm)", (0, 4, 1), ref[1]),
+              ("(c) Part 3, actual width 1.25 mm", "Width (mm)", (0, 3, 1), ref[2]),
+              ("(d) Mean width error of the parts measured at 8 or more stations", "Mean error (mm)", (-3, 2, 1), 0.0)]
+    x = np.arange(len(ORDER))
+    for k, (sub, ylab, (y0, y1, dy), gt) in enumerate(panels):
+        ax = fig.add_axes([left, tops[k] - ah, right - left, ah])
+        ax.set_axisbelow(True); ax.grid(True, color="#c9c9c9", linewidth=0.45, linestyle=(0, (1, 2)))
+        ax.axhspan(gt - 0.5, gt + 0.5, color="#e9e9e9", zorder=0, linewidth=0)
+        ax.axhline(gt, color="black", linewidth=1.8, zorder=2)
+        ax.axvline(3.5, color="#888888", linewidth=0.8, linestyle="--")
+        for j, (seg, (c, m)) in enumerate(COL.items()):
+            for i, name in enumerate(ORDER):
+                r = next(r for r in rows if r["segmentation"] == seg and r["rule"] == name)
+                if k < 3:
+                    n, v = r["stations"][k], r["width_all_stations_mm"][k]
+                    if v is None or n < 3: continue
+                    open_ = n < need
+                else:
+                    v, open_ = r["mean_error_mm"], False
+                    if v is None: continue
+                ax.plot(x[i] + (j - 1) * 0.2, v, linestyle="none", marker=m, markersize=5.5, color=c,
+                        markerfacecolor="white" if open_ else c, markeredgewidth=1.0, zorder=3)
+        ax.set_xlim(-0.6, len(ORDER) - 0.4); ax.set_xticks(x)
+        ax.set_ylim(y0, y1); ax.set_yticks(np.arange(y0, y1 + 0.01, dy)); ax.set_ylabel(ylab)
+        if k < 3:
+            ax.set_xticklabels([])
+            fig.text(left, tops[k] - ah - 0.012, sub, va="top", fontsize=9)
+        else:
+            ax.set_xticklabels(XLAB, fontsize=8)
+            fig.text(xf(1.5), tops[k] - ah - 0.052, "Consistency Index", ha="center", va="top", fontsize=8.5)
+            fig.text(xf(6.0), tops[k] - ah - 0.052, "Fixed fusion rules (best view, fraction of views)", ha="center",
+                     va="top", fontsize=8.5)
+            fig.text(left, tops[k] - ah - 0.074, sub, va="top", fontsize=9)
+    hd = [Line2D([], [], linestyle="none", marker=m, markersize=5.5, color=c, label=seg) for seg, (c, m) in COL.items()]
+    hd += [Line2D([], [], color="black", linewidth=1.8, label="Actual width (crack ruler)"),
+           plt.Rectangle((0, 0), 1, 1, color="#e9e9e9", label="Actual width \u00b1 0.5 mm"),
+           Line2D([], [], linestyle="none", marker="o", markersize=5.5, color="#555555", markerfacecolor="white",
+                  label="Open: 3 to 7 of the 10 stations")]
+    lg = fig.legend(handles=hd, loc="upper center", bbox_to_anchor=(0.545, 0.995), ncol=3, frameon=True, fontsize=8.5,
+                    edgecolor="black", framealpha=1, handletextpad=0.4, columnspacing=1.2)
+    lg.get_frame().set_linewidth(0.7)
+    fig.savefig(f"{OUT}/rule_comparison.png", dpi=200); plt.close(fig)
 
 
 def gif(data_dir=f"{ROOT}/data/drone", across=0.010, min_show=3):
@@ -72,11 +108,11 @@ def gif(data_dir=f"{ROOT}/data/drone", across=0.010, min_show=3):
                   ("CI 2", "CI 2", "Consistency Index 2: crack in at least 2 photos"),
                   ("CI 3", "CI 3", "Consistency Index 3: crack in at least 3 photos"),
                   ("CI 4", "CI 4", "Consistency Index 4: crack in at least 4 photos"),
-                  ("best view (closest)", "best view (closest)", "Fixed rule: label of the closest photo only"),
-                  ("best view (most frontal)", "best view (most frontal)", "Fixed rule: label of the most frontal photo only"),
-                  ("fraction >= 1/3", "fraction >= 1/3", "Fixed rule: crack in at least 1/3 of the photos that see the point"),
-                  ("fraction >= 1/2", "fraction >= 1/2", "Fixed rule: crack in at least 1/2 of the photos that see the point"),
-                  ("fraction >= 2/3", "fraction >= 2/3", "Fixed rule: crack in at least 2/3 of the photos that see the point")]
+                  ("best view (closest)", "best view (closest)", "Best view (closest): fixed rule, the label of the closest photo only"),
+                  ("best view (most frontal)", "best view (most frontal)", "Best view (most frontal): fixed rule, the label of the most frontal photo only"),
+                  ("fraction >= 1/3", "fraction >= 1/3", "Fraction \u2265 1/3: fixed rule, crack in at least 1/3 of the photos that see the point"),
+                  ("fraction >= 1/2", "fraction >= 1/2", "Fraction \u2265 1/2: fixed rule, crack in at least 1/2 of the photos that see the point"),
+                  ("fraction >= 2/3", "fraction >= 2/3", "Fraction \u2265 2/3: fixed rule, crack in at least 2/3 of the photos that see the point")]
 
     def part_text(r, j):
         n, w = r["stations"][j], r["width_all_stations_mm"][j]

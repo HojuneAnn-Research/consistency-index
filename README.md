@@ -9,6 +9,7 @@ This repository contains the worked example of the accompanying manuscript: the 
 ```
 python code/run_drone_example.py   # CI clouds, rules, widths -> results/drone/widths.json
 python code/make_figures.py        # results/drone/rule_comparison.png, consistency_index_drone.gif
+python code/prefilter.py           # comparison of the two pre-filtering stages
 ```
 
 Inputs in `data/drone`: visible points of five photos after depth filtering and hidden point removal (local coordinates), camera matrices, binary masks of three segmentations (manual crack marking, DeepCrack, masonry crack segmentation), and the part centrelines and reference widths (3.00, 2.48 and 1.25 mm, crack ruler).
@@ -41,10 +42,19 @@ How to read the figure: each column is one way of combining the five photos and 
 
 ![Rule comparison](results/drone/rule_comparison.png)
 
-The rule closest to the reference differed between the segmentations: the best view chosen by distance for manual marking (+0.15 mm), CI 1 for DeepCrack (+0.10 mm) and the 1/3 fraction for the masonry segmentation (−0.24 mm). This held in eight of nine variants of the width extraction (window ±3, ±6 or ±10 mm along the crack; band, full-extent or 10–90 % width).
+The rule closest to the reference differed between the segmentations: the best view chosen by distance for manual marking (+0.15 mm), CI 1 for DeepCrack (+0.10 mm) and the 1/3 fraction for the masonry segmentation (−0.24 mm). This held in eight of nine variants of the width extraction (window ±3, ±6 or ±10 mm along the crack; band, full-extent or 10–90 % width). In all nine variants, each of the five fixed rules left at least one segmentation more than 0.5 mm from the reference, and in eight of them the same held for each fixed CI value.
 
 **Width measurement.** Widths here are extracted automatically: at ten equally spaced stations along each part, the across-crack extent of the contiguous band of crack points within ±6 mm along the crack (`code/ci_pipeline.py`, `width`). A part is reported when at least 8 of the 10 stations can be measured; the manuscript's crack width table uses the same extraction and rule, and gives parts measured at 3 to 7 stations in brackets.
 
+### Pre-filtering (depth filtering and hidden point removal)
+
+`code/prefilter.py` is the pre-filtering applied to the point cloud for each photo before reprojection (manuscript, Section 2.2): depth filtering keeps the points that project inside the image and are no deeper than a threshold set for each photo, and hidden point removal (Open3D) then keeps the points visible from the camera centre. The settings of each photo are in `data/drone/prefilter.json`. The visible points in `data/drone` are the output of this step; the full point cloud is available on request. The crack points stored after each stage for four photos (`data/drone/prefilter_stages.npz`, manual crack marking) reproduce the comparison of the stages in the manuscript (Section 3.4):
+
+| Four photos | On the tile surface | 10 to 50 mm off the surface, along the crack line | More than 50 mm off the surface |
+|---|---|---|---|
+| Depth filtering | 2796 | 482 | 52 |
+| Depth filtering and hidden point removal | 1745 | 124 | 0 |
+
 ## Requirements
 
-Python 3.10+, numpy, scipy, pillow, matplotlib.
+Python 3.10+, numpy, scipy, pillow, matplotlib; Open3D only for applying the pre-filtering to a full point cloud.

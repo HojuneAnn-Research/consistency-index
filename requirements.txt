@@ -2,3 +2,5 @@ numpy
 scipy
 pillow
 matplotlib
+opencv-python
+open3d  # optional: code/prefilter.py on a full point cloud

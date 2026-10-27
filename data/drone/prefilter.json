@@ -1,0 +1,18 @@
+{
+ "note": "Pre-filtering settings of each photo. Depth threshold: upper bound on the projective depth w (m). Hidden point removal (Open3D): radius = 100 x the Z coordinate of the camera centre in the survey coordinates, used unchanged in the local frame (the result depends only on the radius and on the positions relative to the camera).",
+ "depth_threshold_m": {
+  "0003": 4.8,
+  "0004": 5.0,
+  "0005": 10.0,
+  "0012": 6.0,
+  "0013": 3.6
+ },
+ "hpr_radius_m": {
+  "0003": 6674.5,
+  "0004": 6543.6,
+  "0005": 6732.5,
+  "0012": 6851.7,
+  "0013": 6560.7
+ },
+ "stages_stored": "prefilter_stages.npz: crack points (manual crack marking) of photos 0003, 0004, 0005 and 0013 after depth filtering only (depth_*) and after depth filtering and hidden point removal (hpr_*), local frame"
+}

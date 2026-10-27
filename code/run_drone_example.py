@@ -4,7 +4,7 @@ Usage: python code/run_drone_example.py   (writes results/drone)"""
 import json, os, sys
 import numpy as np
 sys.path.insert(0, os.path.dirname(__file__))
-from ci_pipeline import load, load_mask, mask_labeler, run_labeler, consistency_index, fusion_rules, width
+from ci_pipeline import load, load_mask, mask_labeler, consistency_index, fusion_rules, width
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA, OUT = f"{ROOT}/data/drone", f"{ROOT}/results/drone"
@@ -25,11 +25,14 @@ def main():
         sets = {f"CI {k}" + (" (plain reprojection)" if k == 1 else ""): ci >= k for k in (1, 2, 3, 4)}
         sets.update(fusion_rules(views, P, vis, lab, pts, normal))
         for name, sel in sets.items():
-            w = [width(pts[sel], p, geo)[0] for p in PARTS]
+            res = [width(pts[sel], p, geo) for p in PARTS]
+            w = [r[0] for r in res]
             e = [x - ref[p] for x, p in zip(w, PARTS) if x is not None]
+            rnd = lambda x: None if x is None else round(x, 2)
             rows.append(dict(segmentation=title, rule=name, points=int(sel.sum()),
-                             width_mm=[None if x is None else round(x, 2) for x in w],
-                             mean_error_mm=None if not e else round(float(np.mean(e)), 2), parts_measured=len(e)))
+                             width_mm=[rnd(x) for x in w],
+                             mean_error_mm=None if not e else round(float(np.mean(e)), 2), parts_measured=len(e),
+                             stations=[r[1] for r in res], width_all_stations_mm=[rnd(r[2]) for r in res]))
             print(rows[-1], flush=True)
     json.dump(rows, open(f"{OUT}/widths.json", "w"), indent=1)
 

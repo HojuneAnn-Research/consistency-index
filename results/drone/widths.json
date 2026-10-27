@@ -9,7 +9,17 @@
    2.64
   ],
   "mean_error_mm": 1.32,
-  "parts_measured": 3
+  "parts_measured": 3,
+  "stations": [
+   10,
+   10,
+   8
+  ],
+  "width_all_stations_mm": [
+   4.61,
+   3.43,
+   2.64
+  ]
  },
  {
   "segmentation": "Manual crack marking",
@@ -21,7 +31,17 @@
    null
   ],
   "mean_error_mm": 0.27,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   10,
+   5
+  ],
+  "width_all_stations_mm": [
+   3.27,
+   2.76,
+   2.21
+  ]
  },
  {
   "segmentation": "Manual crack marking",
@@ -33,7 +53,17 @@
    null
   ],
   "mean_error_mm": -0.81,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   10,
+   3
+  ],
+  "width_all_stations_mm": [
+   2.09,
+   1.78,
+   1.09
+  ]
  },
  {
   "segmentation": "Manual crack marking",
@@ -45,7 +75,17 @@
    null
   ],
   "mean_error_mm": -1.49,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   10,
+   0
+  ],
+  "width_all_stations_mm": [
+   1.27,
+   1.24,
+   null
+  ]
  },
  {
   "segmentation": "Manual crack marking",
@@ -57,7 +97,17 @@
    1.96
   ],
   "mean_error_mm": 0.15,
-  "parts_measured": 3
+  "parts_measured": 3,
+  "stations": [
+   10,
+   10,
+   8
+  ],
+  "width_all_stations_mm": [
+   3.04,
+   2.18,
+   1.96
+  ]
  },
  {
   "segmentation": "Manual crack marking",
@@ -69,7 +119,17 @@
    2.36
   ],
   "mean_error_mm": 0.38,
-  "parts_measured": 3
+  "parts_measured": 3,
+  "stations": [
+   10,
+   10,
+   8
+  ],
+  "width_all_stations_mm": [
+   3.11,
+   2.4,
+   2.36
+  ]
  },
  {
   "segmentation": "Manual crack marking",
@@ -81,7 +141,17 @@
    2.64
   ],
   "mean_error_mm": 1.01,
-  "parts_measured": 3
+  "parts_measured": 3,
+  "stations": [
+   10,
+   10,
+   8
+  ],
+  "width_all_stations_mm": [
+   3.96,
+   3.15,
+   2.64
+  ]
  },
  {
   "segmentation": "Manual crack marking",
@@ -93,7 +163,17 @@
    2.1
   ],
   "mean_error_mm": 0.65,
-  "parts_measured": 3
+  "parts_measured": 3,
+  "stations": [
+   10,
+   10,
+   8
+  ],
+  "width_all_stations_mm": [
+   3.51,
+   3.07,
+   2.1
+  ]
  },
  {
   "segmentation": "Manual crack marking",
@@ -105,7 +185,17 @@
    null
   ],
   "mean_error_mm": -0.19,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   10,
+   7
+  ],
+  "width_all_stations_mm": [
+   2.5,
+   2.59,
+   1.91
+  ]
  },
  {
   "segmentation": "DeepCrack",
@@ -117,7 +207,17 @@
    1.88
   ],
   "mean_error_mm": 0.1,
-  "parts_measured": 3
+  "parts_measured": 3,
+  "stations": [
+   10,
+   10,
+   9
+  ],
+  "width_all_stations_mm": [
+   3.2,
+   1.95,
+   1.88
+  ]
  },
  {
   "segmentation": "DeepCrack",
@@ -129,7 +229,17 @@
    null
   ],
   "mean_error_mm": -1.09,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   10,
+   5
+  ],
+  "width_all_stations_mm": [
+   2.05,
+   1.26,
+   1.58
+  ]
  },
  {
   "segmentation": "DeepCrack",
@@ -141,7 +251,17 @@
    null
   ],
   "mean_error_mm": -1.76,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   9,
+   0
+  ],
+  "width_all_stations_mm": [
+   0.94,
+   1.02,
+   null
+  ]
  },
  {
   "segmentation": "DeepCrack",
@@ -153,7 +273,17 @@
    null
   ],
   "mean_error_mm": -2.39,
-  "parts_measured": 1
+  "parts_measured": 1,
+  "stations": [
+   10,
+   7,
+   0
+  ],
+  "width_all_stations_mm": [
+   0.61,
+   0.65,
+   null
+  ]
  },
  {
   "segmentation": "DeepCrack",
@@ -165,7 +295,17 @@
    1.73
   ],
   "mean_error_mm": -0.72,
-  "parts_measured": 3
+  "parts_measured": 3,
+  "stations": [
+   10,
+   10,
+   9
+  ],
+  "width_all_stations_mm": [
+   1.76,
+   1.07,
+   1.73
+  ]
  },
  {
   "segmentation": "DeepCrack",
@@ -177,7 +317,17 @@
    1.35
   ],
   "mean_error_mm": -0.97,
-  "parts_measured": 3
+  "parts_measured": 3,
+  "stations": [
+   10,
+   10,
+   9
+  ],
+  "width_all_stations_mm": [
+   1.42,
+   1.05,
+   1.35
+  ]
  },
  {
   "segmentation": "DeepCrack",
@@ -189,7 +339,17 @@
    1.85
   ],
   "mean_error_mm": -0.12,
-  "parts_measured": 3
+  "parts_measured": 3,
+  "stations": [
+   10,
+   10,
+   9
+  ],
+  "width_all_stations_mm": [
+   2.81,
+   1.71,
+   1.85
+  ]
  },
  {
   "segmentation": "DeepCrack",
@@ -201,7 +361,17 @@
    1.51
   ],
   "mean_error_mm": -0.44,
-  "parts_measured": 3
+  "parts_measured": 3,
+  "stations": [
+   10,
+   10,
+   9
+  ],
+  "width_all_stations_mm": [
+   2.44,
+   1.46,
+   1.51
+  ]
  },
  {
   "segmentation": "DeepCrack",
@@ -213,7 +383,17 @@
    null
   ],
   "mean_error_mm": -1.35,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   10,
+   5
+  ],
+  "width_all_stations_mm": [
+   1.58,
+   1.21,
+   0.85
+  ]
  },
  {
   "segmentation": "Masonry crack segmentation",
@@ -225,7 +405,17 @@
    null
   ],
   "mean_error_mm": 0.41,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   10,
+   1
+  ],
+  "width_all_stations_mm": [
+   3.01,
+   3.29,
+   2.57
+  ]
  },
  {
   "segmentation": "Masonry crack segmentation",
@@ -237,7 +427,17 @@
    null
   ],
   "mean_error_mm": -1.03,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   10,
+   0
+  ],
+  "width_all_stations_mm": [
+   1.48,
+   1.93,
+   null
+  ]
  },
  {
   "segmentation": "Masonry crack segmentation",
@@ -249,7 +449,17 @@
    null
   ],
   "mean_error_mm": -1.61,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   8,
+   10,
+   0
+  ],
+  "width_all_stations_mm": [
+   0.59,
+   1.66,
+   null
+  ]
  },
  {
   "segmentation": "Masonry crack segmentation",
@@ -261,7 +471,17 @@
    null
   ],
   "mean_error_mm": -1.18,
-  "parts_measured": 1
+  "parts_measured": 1,
+  "stations": [
+   4,
+   10,
+   0
+  ],
+  "width_all_stations_mm": [
+   0.42,
+   1.3,
+   null
+  ]
  },
  {
   "segmentation": "Masonry crack segmentation",
@@ -273,7 +493,17 @@
    null
   ],
   "mean_error_mm": -0.57,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   10,
+   0
+  ],
+  "width_all_stations_mm": [
+   2.33,
+   2.01,
+   null
+  ]
  },
  {
   "segmentation": "Masonry crack segmentation",
@@ -285,7 +515,17 @@
    null
   ],
   "mean_error_mm": -0.61,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   10,
+   1
+  ],
+  "width_all_stations_mm": [
+   2.28,
+   1.98,
+   1.29
+  ]
  },
  {
   "segmentation": "Masonry crack segmentation",
@@ -297,7 +537,17 @@
    null
   ],
   "mean_error_mm": -0.24,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   10,
+   1
+  ],
+  "width_all_stations_mm": [
+   2.51,
+   2.49,
+   1.2
+  ]
  },
  {
   "segmentation": "Masonry crack segmentation",
@@ -309,7 +559,17 @@
    null
   ],
   "mean_error_mm": -0.77,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   10,
+   10,
+   0
+  ],
+  "width_all_stations_mm": [
+   1.65,
+   2.3,
+   null
+  ]
  },
  {
   "segmentation": "Masonry crack segmentation",
@@ -321,6 +581,16 @@
    null
   ],
   "mean_error_mm": -1.41,
-  "parts_measured": 2
+  "parts_measured": 2,
+  "stations": [
+   9,
+   10,
+   0
+  ],
+  "width_all_stations_mm": [
+   0.7,
+   1.95,
+   null
+  ]
  }
 ]

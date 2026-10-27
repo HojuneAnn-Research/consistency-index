@@ -40,14 +40,8 @@ def label_view(xyz, P, mask):
 
 
 def mask_labeler(P, masks):
-    """Per-photo labels from 2D masks (manual marking, DeepCrack)."""
+    """Per-photo labels from the 2D masks."""
     return lambda v, xyz: label_view(xyz, P[v], masks[v])
-
-
-def run_labeler(labels):
-    """Per-photo labels supplied as labelled points (masonry network: the masks of that run were not kept)."""
-    trees = {v: cKDTree(x) for v, x in labels.items() if len(x)}
-    return lambda v, xyz: (trees[v].query(xyz)[0] < 1e-4) if v in trees else np.zeros(len(xyz), bool)
 
 
 def consistency_index(views, P, vis, labeler):
@@ -101,7 +95,9 @@ def _project_polyline(q, line):
 
 
 def width(xyz, part, geo):
-    """Mean across-crack extent (mm) of the contiguous band at 10 equally spaced stations; None if fewer than `need`."""
+    """Across-crack extent (mm) of the contiguous band at 10 equally spaced stations.
+    Returns (width, n, width_all): n is the number of stations that could be measured, width_all the mean
+    over those n stations, and width the same mean but None when n is below `need` (8), as in the manuscript."""
     c = geo["width_method"]; fr = geo["frame"]
     uvw = (xyz - np.array(fr["origin"])) @ np.array(fr["axes"]).T
     q2 = uvw[np.abs(uvw[:, 2]) < c["wtol"], :2]
@@ -110,7 +106,7 @@ def width(xyz, part, geo):
     dd = np.stack([_project_polyline(q2, lines[p])[2] for p in names], 1)
     q = q2[(dd.argmin(1) == names.index(part)) & (dd.min(1) < c["R"])]
     if len(q) < 2:
-        return None, 0
+        return None, 0, None
     s, d, _, L = _project_polyline(q, lines[part])
     edges = np.linspace(c["margin"] * L, (1 - c["margin"]) * L, c["nseg"] + 1); ws = []
     for a, b in zip(edges[:-1], edges[1:]):
@@ -122,4 +118,5 @@ def width(xyz, part, geo):
                 g = min(groups, key=lambda x: 0 if x.min() <= 0 <= x.max() else min(abs(x.min()), abs(x.max())))
                 if len(g) >= c["minpts"] and g.max() > g.min():
                     ws.append(g.max() - g.min()); break
-    return (float(np.mean(ws)) * 1000 if len(ws) >= c["need"] else None), len(ws)
+    w_all = float(np.mean(ws)) * 1000 if ws else None
+    return (w_all if len(ws) >= c["need"] else None), len(ws), w_all

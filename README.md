@@ -43,7 +43,7 @@ How to read the figure: each column is one way of combining the five photos, and
 
 The rule closest to the reference differed between the segmentations: the best view chosen by distance for manual marking (+0.15 mm), CI 1 for DeepCrack (+0.10 mm) and the 1/3 fraction for the masonry segmentation (−0.24 mm). This held in eight of nine variants of the width extraction (window ±3, ±6 or ±10 mm along the crack; band, full-extent or 10–90 % width).
 
-**Width measurement.** Widths here are extracted automatically: at ten equally spaced stations along each part, the across-crack extent of the contiguous band of crack points within ±6 mm along the crack (`code/ci_pipeline.py`, `width`). A part is reported when at least 8 of the 10 stations can be measured; the manuscript's crack width table uses the same extraction and rule.
+**Width measurement.** Widths here are extracted automatically: at ten equally spaced stations along each part, the across-crack extent of the contiguous band of crack points within ±6 mm along the crack (`code/ci_pipeline.py`, `width`). A part is reported when at least 8 of the 10 stations can be measured; the manuscript's crack width table uses the same extraction and rule, and gives parts measured at 3 to 7 stations in brackets.
 
 ## Requirements
 

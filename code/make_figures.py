@@ -71,30 +71,48 @@ def comparison():
     fig.savefig(f"{OUT}/rule_comparison.png", dpi=200); plt.close(fig)
 
 
-def gif(data_dir=f"{ROOT}/data/drone", across=0.010, min_show=3):
+def gif(data_dir=f"{ROOT}/data/drone", min_show=3, cell=(500, 326), pad=0.014):
     """One frame per rule, in the order of the comparison figure. Rows: the three 2D segmentations; columns: the three
-    crack parts, each straightened along its centreline (across-crack scale exaggerated). Red points are the crack
-    points the rule keeps for that part, triangles the 10 stations (filled: measured). A part measured at fewer than
-    `need` (8) stations is marked * and not used in the mean error; one with fewer than `min_show` stations is a dash."""
+    crack parts, each shown as a zoomed view of the point cloud around the part (front view of the wall, true scale).
+    Dark red: crack points of that part kept by the rule; light red: crack points of the other parts. Under each view:
+    width and error of the part; a part measured at fewer than `need` (8) stations is marked * and not used in the
+    mean error, one with fewer than `min_show` stations is a dash."""
     import sys; sys.path.insert(0, os.path.dirname(__file__))
-    from ci_pipeline import (load, load_mask, mask_labeler, consistency_index, fusion_rules, part_points, stations,
-                             _project_polyline)
+    from PIL import ImageDraw, ImageFont
+    from ci_pipeline import load, load_mask, mask_labeler, consistency_index, fusion_rules, part_points
     geo = json.load(open(f"{data_dir}/geometry.json")); fr = geo["frame"]; c = geo["width_method"]
     o, A = np.array(fr["origin"]), np.array(fr["axes"])
     lines = {p: np.array(l) for p, l in geo["centrelines_uv"].items()}
     parts = list(lines); ref = [geo["reference_width_mm"][p] for p in parts]; need = c["need"]
-    xmax, xstep = {"Part1": 320, "Part2": 270, "Part3": 80}, {"Part1": 80, "Part2": 90, "Part3": 20}
+    cw, ch = cell
 
-    # background: points of one photo with their colour, straightened along each part
-    pts = np.load(f"{data_dir}/visible_points_crop.npz")
-    uvw = (pts["xyz_0003"] - o) @ A.T; rgb = 0.55 * pts["rgb_0003"] / 255.0 + 0.45
-    on = np.abs(uvw[:, 2]) < c["wtol"]; bg = {}
-    for p in parts:
-        s, d, _, L = _project_polyline(uvw[on, :2], lines[p])
-        m = (np.abs(d) <= across) & (s > 0) & (s < L)
-        bg[p] = (s[m] * 1000, d[m] * 1000, rgb[on][m])
+    # crop box of each part: centreline extent plus a margin, widened to the aspect of the view
+    boxes = {}
+    for p, l in lines.items():
+        lo, hi = l.min(0) - pad, l.max(0) + pad; ctr = (lo + hi) / 2; w, h = hi - lo
+        if w / h < cw / ch: w = h * cw / ch
+        else: h = w * ch / cw
+        boxes[p] = (ctr[0] - w / 2, ctr[1] - h / 2, w / cw)          # u0, v0, metres per pixel
 
-    # crack points kept by every rule
+    def view(p, layers):
+        u0, v0, mpp = boxes[p]; img = np.full((ch, cw, 3), 255, np.uint8)
+        for uv, col, rad_mm in layers:
+            x = ((uv[:, 0] - u0) / mpp).astype(int); y = ch - 1 - ((uv[:, 1] - v0) / mpp).astype(int)
+            m = (x >= 0) & (x < cw) & (y >= 0) & (y < ch); x, y = x[m], y[m]
+            col = col if np.ndim(col) == 1 else col[m]; r = max(1, int(round(rad_mm / 1000 / mpp)))
+            for dy in range(-r, r + 1):
+                for dx in range(-r, r + 1):
+                    if dx * dx + dy * dy <= r * r:
+                        img[np.clip(y + dy, 0, ch - 1), np.clip(x + dx, 0, cw - 1)] = col
+        return Image.fromarray(img)
+
+    pts = np.load(f"{data_dir}/visible_points_crop.npz")                 # background: visible points of all photos
+    xyz_all = np.vstack([pts[k] for k in pts.files if k.startswith("xyz_")])
+    rgb_all = np.vstack([pts[k] for k in pts.files if k.startswith("rgb_")])
+    _, first = np.unique(np.round(xyz_all, 4), axis=0, return_index=True)
+    bg_uv = ((xyz_all[first] - o) @ A.T)[:, :2]
+    bg_rgb = (0.55 * rgb_all[first] + 0.45 * 255).astype(np.uint8)
+
     views, P, vis, _ = load(data_dir); normal = A[2]
     keep = {}
     for seg in ("manual", "deepcrack", "masonry"):
@@ -102,7 +120,7 @@ def gif(data_dir=f"{ROOT}/data/drone", across=0.010, min_show=3):
         cand, ci = consistency_index(views, P, vis, lab)
         keep[seg] = (cand, {f"CI {k}": ci >= k for k in (1, 2, 3, 4)} | fusion_rules(views, P, vis, lab, cand, normal))
     rows = json.load(open(f"{OUT}/widths.json"))
-    title = {"manual": "Manual crack\nmarking", "deepcrack": "DeepCrack", "masonry": "Masonry crack\nsegmentation"}
+    title = {"manual": ["Manual crack", "marking"], "deepcrack": ["DeepCrack"], "masonry": ["Masonry crack", "segmentation"]}
     name = {"manual": "Manual crack marking", "deepcrack": "DeepCrack", "masonry": "Masonry crack segmentation"}
     frames_def = [("CI 1", "CI 1 (plain reprojection)", "Consistency Index 1: crack in at least 1 photo (plain reprojection)"),
                   ("CI 2", "CI 2", "Consistency Index 2: crack in at least 2 photos"),
@@ -114,62 +132,59 @@ def gif(data_dir=f"{ROOT}/data/drone", across=0.010, min_show=3):
                   ("fraction >= 1/2", "fraction >= 1/2", "Fraction \u2265 1/2: fixed rule, crack in at least 1/2 of the photos that see the point"),
                   ("fraction >= 2/3", "fraction >= 2/3", "Fraction \u2265 2/3: fixed rule, crack in at least 2/3 of the photos that see the point")]
 
+    def font(size, bold=False):
+        for f in (("DejaVuSans-Bold.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", "arialbd.ttf") if bold else
+                  ("DejaVuSans.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "arial.ttf")):
+            try: return ImageFont.truetype(f, size)
+            except OSError: pass
+        return ImageFont.load_default()
+    f_cap, f_row, f_txt, f_note = font(24, True), font(20, True), font(19, True), font(16)
+
     def part_text(r, j):
         n, w = r["stations"][j], r["width_all_stations_mm"][j]
         if w is None or n < min_show:
-            return "\u2013"
-        t = f"{w:.2f} mm ({w - ref[j]:+.2f})" + (f"   {n}/10 stations*" if n < need else "")
+            return f"Part {j + 1}   \u2013"
+        t = f"Part {j + 1}   {w:.2f} mm ({w - ref[j]:+.2f})" + (f"   {n}/10 st.*" if n < need else "")
         return t.replace("-", "\u2212")
 
-    plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 11, "axes.linewidth": 0.8,
-                         "xtick.direction": "in", "ytick.direction": "in"})
-    W, H = 18.0, 6.0; left, right, gapx = 0.12, 0.995, 0.026; aw = (right - left - 2 * gapx) / 3
-    ah, top, gapy = 0.215, 0.98, 0.035
+    left, gap, top, txt_h, row_gap = 196, 16, 10, 34, 12
+    W = left + 3 * cw + 2 * gap + 8; row_h = ch + txt_h + row_gap; H = top + 3 * row_h + 96
+    dark, light = np.array([200, 0, 0], np.uint8), np.array([245, 160, 160], np.uint8)
     frames = []
     for key, rule_name, caption in frames_def:
-        fig = plt.figure(figsize=(W, H), dpi=100)
+        im = Image.new("RGB", (W, H), "white"); dr = ImageDraw.Draw(im)
         for i, seg in enumerate(("manual", "deepcrack", "masonry")):
             cand, sets = keep[seg]; xyz = cand[sets[key]]
             r = next(r for r in rows if r["segmentation"] == name[seg] and r["rule"] == rule_name)
-            y0 = top - ah - i * (ah + gapy)
+            uv = ((xyz - o) @ A.T)[:, :2]; y0 = top + i * row_h
+            for k, t in enumerate(title[seg]):
+                dr.text((8, y0 + ch / 2 - 46 + 26 * k), t, fill=(0, 0, 0), font=f_row)
             me = "n/a" if r["mean_error_mm"] is None else f"{r['mean_error_mm']:+.2f} mm".replace("-", "\u2212")
-            fig.text(0.006, y0 + ah * 0.62, title[seg], fontsize=13, fontweight="bold", va="center")
-            fig.text(0.006, y0 + ah * 0.18, f"mean error\n{me}", fontsize=12, va="center")
+            dr.text((8, y0 + ch / 2 + 16), "mean error", fill=(0, 0, 0), font=f_txt)
+            dr.text((8, y0 + ch / 2 + 40), me, fill=(0, 0, 0), font=f_txt)
             for j, p in enumerate(parts):
-                ax = fig.add_axes([left + j * (aw + gapx), y0, aw, ah])
-                ax.set_axisbelow(True); ax.grid(True, color="#c9c9c9", linewidth=0.45, linestyle=(0, (1, 2)))
-                bs, bd, bc = bg[p]; ax.scatter(bs, bd, s=3, c=bc, linewidths=0, zorder=1)
-                s, d, L, _ = part_points(xyz, p, geo)
-                m = np.abs(d) <= across
-                ax.scatter(s[m] * 1000, d[m] * 1000, s=11, c="#D00000", linewidths=0, zorder=3)
-                st, L = stations(xyz, p, geo); done = {k for k, _, _ in st}
-                e = np.linspace(c["margin"] * L, (1 - c["margin"]) * L, c["nseg"] + 1); mid = (e[:-1] + e[1:]) / 2 * 1000
-                for k, x in enumerate(mid):
-                    ax.plot(x, -8.6, marker="^", markersize=6.5, color="#222222",
-                            markerfacecolor="#222222" if k in done else "white", markeredgewidth=0.9, zorder=4)
-                ax.set_xlim(0, xmax[p]); ax.set_xticks(np.arange(0, xmax[p] + 1, xstep[p]))
-                ax.set_ylim(-across * 1000, across * 1000); ax.set_yticks([-10, 0, 10])
-                if i < 2: ax.set_xticklabels([])
-                else: ax.set_xlabel(f"Part {j + 1} ({ref[j]:.2f} mm): distance along the part (mm)", fontsize=12)
-                if j > 0: ax.set_yticklabels([])
-                ax.text(0.012, 0.93, f"Part {j + 1}   " + part_text(r, j), transform=ax.transAxes, fontsize=12,
-                        fontweight="bold", va="top", ha="left", zorder=5,
-                        bbox=dict(boxstyle="square,pad=0.25", facecolor="white", edgecolor="none", alpha=0.85))
-        fig.text(0.006, 0.105, caption, fontsize=15, fontweight="bold", va="center")
-        fig.text(0.006, 0.055, "Each panel is one part straightened along its centreline; vertical axis: offset across the "
-                 "crack (mm, exaggerated).", fontsize=11, va="center", color="#444444")
-        fig.text(0.006, 0.02, "Errors against the crack-ruler width in brackets.   * measured at fewer than 8 of the 10 "
-                 "stations and not used in the mean error;   \u2013 fewer than 3 stations.", fontsize=11, va="center",
-                 color="#444444")
-        hd = [Line2D([], [], linestyle="none", marker="o", markersize=5, color="#D00000", label="Crack points kept by the rule"),
-              Line2D([], [], linestyle="none", marker="^", markersize=7, color="#222222", label="Station measured"),
-              Line2D([], [], linestyle="none", marker="^", markersize=7, color="#222222", markerfacecolor="white",
-                     label="Station not measured")]
-        lg = fig.legend(handles=hd, loc="center right", bbox_to_anchor=(0.995, 0.105), ncol=3, frameon=True, fontsize=11,
-                        edgecolor="black", framealpha=1, handletextpad=0.3, columnspacing=1.2)
-        lg.get_frame().set_linewidth(0.8)
-        fig.canvas.draw(); frames.append(Image.fromarray(np.asarray(fig.canvas.buffer_rgba())[:, :, :3].copy())); plt.close(fig)
-    frames[0].save(f"{OUT}/consistency_index_drone.gif", save_all=True, append_images=frames[1:], duration=1800, loop=0)
+                own = np.zeros(len(xyz), bool); own[part_points(xyz, p, geo)[3]] = True
+                img = view(p, [(bg_uv, bg_rgb, 0.55), (uv[~own], light, 0.8), (uv[own], dark, 0.8)])
+                x0 = left + j * (cw + gap); im.paste(img, (x0, y0))
+                dr.rectangle([x0, y0, x0 + cw - 1, y0 + ch - 1], outline=(120, 120, 120), width=1)
+                dr.text((x0 + 2, y0 + ch + 6), part_text(r, j), fill=(0, 0, 0), font=f_txt)
+        yb = top + 3 * row_h
+        dr.text((8, yb + 2), caption, fill=(0, 0, 0), font=f_cap)
+        dr.text((960, yb + 40), "Front view of the wall around each part, true scale.", fill=(70, 70, 70), font=f_note)
+        dr.text((8, yb + 64), "Width: mean over the 10 stations of the part, error against the crack-ruler width in brackets "
+                "(3.00, 2.48 and 1.25 mm).   * fewer than 8 of the 10 stations, not used in the mean error;   \u2013 fewer than 3 stations.",
+                fill=(70, 70, 70), font=f_note)
+        for k, (col, lab) in enumerate(((dark, "crack points of the part kept by the rule"), (light, "crack points of the other parts"))):
+            xs = 8 + k * 470; dr.ellipse([xs, yb + 44, xs + 12, yb + 56], fill=tuple(int(v) for v in col))
+            dr.text((xs + 18, yb + 40), lab, fill=(70, 70, 70), font=f_note)
+        frames.append(im)
+    pal = frames[0].quantize(colors=160, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)   # one palette for all frames
+    lut = np.array(pal.getpalette()[:160 * 3]).reshape(-1, 3)
+    for exact in ((255, 255, 255), (0, 0, 0)):                       # keep the page white and the text black
+        lut[np.argmin(np.abs(lut - np.array(exact)).sum(1))] = exact
+    pal.putpalette(lut.astype(int).flatten().tolist())
+    gif_frames = [f.quantize(palette=pal, dither=Image.Dither.NONE) for f in frames]
+    gif_frames[0].save(f"{OUT}/consistency_index_drone.gif", save_all=True, append_images=gif_frames[1:], duration=1800, loop=0)
     frames[0].save(f"{OUT}/ci1_drone.png"); frames[1].save(f"{OUT}/ci2_drone.png")
 
 

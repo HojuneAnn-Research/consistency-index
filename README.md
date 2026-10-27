@@ -16,7 +16,7 @@ Inputs in `data/drone`: visible points of five photos after depth filtering and 
 
 ![CI on the UAV point cloud](results/drone/consistency_index_drone.gif)
 
-Each frame is one rule, in the order of the comparison below. Rows are the three 2D segmentations and columns the three crack parts, each straightened along its centreline with the across-crack scale exaggerated. Red points are the crack points the rule keeps for that part, and triangles mark the 10 width stations (filled = measured). Each panel gives the width of the part with its error against the crack-ruler width, and each row the mean width error of the segmentation. A part measured at fewer than 8 of the 10 stations is marked * with its number of stations and is not used in the mean error.
+Each frame is one rule, in the order of the comparison below. Rows are the three 2D segmentations and columns the three crack parts, each shown as a zoomed front view of the wall at true scale. Dark red points are the crack points of that part kept by the rule, light red points those of the other parts. Under each view are the width of the part and its error against the crack-ruler width, and each row gives the mean width error of the segmentation. A part measured at fewer than 8 of the 10 stations is marked * with its number of stations and is not used in the mean error.
 
 ### Comparison with fixed fusion rules
 

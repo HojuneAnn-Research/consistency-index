@@ -94,22 +94,32 @@ def _project_polyline(q, line):
     return s, d, best, cum[-1]
 
 
-def width(xyz, part, geo):
-    """Across-crack extent (mm) of the contiguous band at 10 equally spaced stations.
-    Returns (width, n, width_all): n is the number of stations that could be measured, width_all the mean
-    over those n stations, and width the same mean but None when n is below `need` (8), as in the manuscript."""
+def part_points(xyz, part, geo):
+    """Points assigned to one part (nearest centreline, within R, |out-of-plane| < wtol): arc length s and signed
+    across-crack offset d (m) along its centreline, the centreline length L and the indices of the points."""
     c = geo["width_method"]; fr = geo["frame"]
     uvw = (xyz - np.array(fr["origin"])) @ np.array(fr["axes"]).T
-    q2 = uvw[np.abs(uvw[:, 2]) < c["wtol"], :2]
+    keep = np.flatnonzero(np.abs(uvw[:, 2]) < c["wtol"]); q2 = uvw[keep, :2]
     lines = {p: np.array(l) for p, l in geo["centrelines_uv"].items()}
-    names = list(lines)
+    names = list(lines); L = _project_polyline(lines[part][:1], lines[part])[3]
+    if not len(q2):
+        return np.array([]), np.array([]), L, keep
     dd = np.stack([_project_polyline(q2, lines[p])[2] for p in names], 1)
-    q = q2[(dd.argmin(1) == names.index(part)) & (dd.min(1) < c["R"])]
-    if len(q) < 2:
-        return None, 0, None
-    s, d, _, L = _project_polyline(q, lines[part])
-    edges = np.linspace(c["margin"] * L, (1 - c["margin"]) * L, c["nseg"] + 1); ws = []
-    for a, b in zip(edges[:-1], edges[1:]):
+    sel = (dd.argmin(1) == names.index(part)) & (dd.min(1) < c["R"])
+    s, d, _, _ = _project_polyline(q2[sel], lines[part])
+    return s, d, L, keep[sel]
+
+
+def stations(xyz, part, geo):
+    """Across-crack extent (mm) of the contiguous band of points at the 10 equally spaced stations of one part.
+    Returns the measured stations as (index, position s0 in m, width in mm) and the centreline length L (m)."""
+    c = geo["width_method"]
+    s, d, L, _ = part_points(xyz, part, geo)
+    out = []
+    if len(s) < 2:
+        return out, L
+    edges = np.linspace(c["margin"] * L, (1 - c["margin"]) * L, c["nseg"] + 1)
+    for i, (a, b) in enumerate(zip(edges[:-1], edges[1:])):
         cand = np.arange(a, b, 0.0005)
         for s0 in cand[np.argsort(np.abs(cand - (a + b) / 2))]:
             sel = np.abs(s - s0) <= c["h"]
@@ -117,6 +127,14 @@ def width(xyz, part, geo):
                 g = np.sort(d[sel]); groups = np.split(g, np.where(np.diff(g) > c["gap"])[0] + 1)
                 g = min(groups, key=lambda x: 0 if x.min() <= 0 <= x.max() else min(abs(x.min()), abs(x.max())))
                 if len(g) >= c["minpts"] and g.max() > g.min():
-                    ws.append(g.max() - g.min()); break
-    w_all = float(np.mean(ws)) * 1000 if ws else None
-    return (w_all if len(ws) >= c["need"] else None), len(ws), w_all
+                    out.append((i, float(s0), float(g.max() - g.min()) * 1000)); break
+    return out, L
+
+
+def width(xyz, part, geo):
+    """Mean width (mm) over the 10 stations of one part. Returns (width, n, width_all): n is the number of stations
+    that could be measured, width_all the mean over those n stations, and width the same mean but None when n is
+    below `need` (8), as in the manuscript."""
+    st, _ = stations(xyz, part, geo); ws = [w for _, _, w in st]
+    w_all = float(np.mean(ws)) if ws else None
+    return (w_all if len(ws) >= geo["width_method"]["need"] else None), len(ws), w_all
